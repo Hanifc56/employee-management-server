@@ -26,7 +26,14 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const employeeCollection = client.db("employeeDb").collection("employee");
+    const userCollection = client.db("userDb").collection("users");
+
+    // employee related api
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
