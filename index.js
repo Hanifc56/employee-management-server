@@ -28,6 +28,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const userCollection = client.db("userDb").collection("users");
+    const workCollection = client.db("userDb").collection("workSheet");
 
     // jwt related api
     app.post("/jwt", async (req, res) => {
@@ -67,6 +68,7 @@ async function run() {
       }
       next();
     };
+    // verify Hr before using verify token
     const verifyHr = async (req, res, next) => {
       const email = req.decoded.email;
       const query = { email: email };
@@ -78,6 +80,13 @@ async function run() {
       }
       next();
     };
+
+    // employee woorksheet ralated api
+    app.post("/workSheet", async (req, res) => {
+      const workInfo = req.body;
+      const result = await workCollection.insertOne(workInfo);
+      res.send(result);
+    });
 
     // user related api
     app.get("/users", verifyToken, async (req, res) => {
@@ -103,7 +112,7 @@ async function run() {
     });
 
     // get the email to verify Hr
-    app.get("/users/hr/:email", verifyToken, async (req, res) => {
+    app.get("/users/Hr/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
 
       if (email !== req.decoded.email) {
@@ -112,11 +121,11 @@ async function run() {
 
       const query = { email: email };
       const user = await userCollection.findOne(query);
-      let hr = false;
+      let Hr = false;
       if (user) {
-        hr = user?.role === "Hr";
+        Hr = user?.role === "Hr";
       }
-      res.send({ hr });
+      res.send({ Hr });
     });
 
     app.post("/users", async (req, res) => {
@@ -144,7 +153,7 @@ async function run() {
     );
 
     // update a user to Hr
-    app.patch("/users/hr/:id", verifyToken, verifyAdmin, async (req, res) => {
+    app.patch("/users/hr/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -156,17 +165,22 @@ async function run() {
       res.send(result);
     });
     // verify a employee in hr routes
-    app.patch("/users/verifyUser/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          status: "verified",
-        },
-      };
-      const result = await userCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+    app.patch(
+      "/users/verifyUser/:id",
+      verifyToken,
+      verifyHr,
+      async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            status: "verified",
+          },
+        };
+        const result = await userCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     // delete a user
     app.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
