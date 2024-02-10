@@ -71,7 +71,9 @@ async function run() {
     // verify Hr before using verify token
     const verifyHr = async (req, res, next) => {
       const email = req.decoded.email;
+
       const query = { email: email };
+
       const user = await userCollection.findOne(query);
       const isHr = user?.role === "Hr";
 
@@ -128,11 +130,12 @@ async function run() {
 
       const query = { email: email };
       const user = await userCollection.findOne(query);
-      let Hr = false;
+      let hr = false;
+
       if (user) {
-        Hr = user?.role === "Hr";
+        hr = user?.role === "Hr";
       }
-      res.send({ Hr });
+      res.send({ hr });
     });
 
     app.post("/users", async (req, res) => {
