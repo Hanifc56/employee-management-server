@@ -85,7 +85,7 @@ async function run() {
 
     // employee woorksheet ralated api
     // get work
-    app.get("/workSheet", verifyToken, verifyHr, async (req, res) => {
+    app.get("/workSheet", verifyToken, async (req, res) => {
       const result = await workCollection.find().toArray();
       res.send(result);
     });
