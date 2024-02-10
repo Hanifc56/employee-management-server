@@ -82,6 +82,13 @@ async function run() {
     };
 
     // employee woorksheet ralated api
+    // get work
+    app.get("/workSheet", async (req, res) => {
+      const result = await workCollection.find().toArray();
+      res.send(result);
+    });
+
+    // post work
     app.post("/workSheet", async (req, res) => {
       const workInfo = req.body;
       const result = await workCollection.insertOne(workInfo);
